@@ -43,18 +43,14 @@ fn main() {
         }
 
         let now = SystemTime::now();
-        unsafe {
-            // Clear the screen to black
-            gl::ClearColor(0.0, 0.0, 0.0, 1.0);
-            gl::Clear(gl::COLOR_BUFFER_BIT);
 
-            rendering_system.apply(&mut entities);
-        }
+        rendering_system.apply(&mut entities);
+
         gl_window.swap_buffers().unwrap();
 
         let duration = match now.elapsed() {
             Ok(duration) => duration,
-            Err(_) => panic!("Could not compute frame duration"),
+            Err(err) => panic!("Could not compute frame duration {:?}", err),
         };
 
         if duration < frame_period {
@@ -62,8 +58,7 @@ fn main() {
             sleep(sleep_duration);
         }
 
-        let result = event_loop_proxy.wakeup();
-        match result {
+        match event_loop_proxy.wakeup() {
             Ok(_) => (),
             Err(_) => panic!("Error waking up event loop"),
         };
