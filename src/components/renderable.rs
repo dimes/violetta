@@ -24,7 +24,8 @@ impl Renderable {
         };
     }
 
-    fn set_position(&mut self, x: f32, y: f32) {
+    pub fn set_position(&mut self, x: f32, y: f32) {
+        self.dirty = true;
         let dx = x - self.x;
         let dy = y - self.y;
 

@@ -11,7 +11,7 @@ pub fn translate(what: &mut Mat4, dx: f32, dy: f32, dz: f32) {
         0.0, 0.0, 1.0, dz, //
         0.0, 0.0, 0.0, 1.0, //
     ];
-    multiply(what, &translate)
+    multiply(what, &translate);
 }
 
 pub fn identity() -> Box<Mat4> {
@@ -31,7 +31,7 @@ pub fn multiply(left: &mut Mat4, right: &Mat4) {
         let i = k / 4 * 4;
         let j = k % 4;
         for pos in 0..4 {
-            temp[k] = left[i + pos] * right[j + pos]
+            temp[k] = temp[k] + left[i + pos] * right[j + (4 * pos)];
         }
     }
     left.copy_from_slice(&temp)

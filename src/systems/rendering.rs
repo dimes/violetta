@@ -185,6 +185,7 @@ impl ::systems::System for System {
 
 impl System {
     fn render(&mut self, renderable: &mut Renderable) {
+        println!("Rendering {:?}", renderable);
         if !renderable.dirty {
             return;
         }

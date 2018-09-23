@@ -30,7 +30,7 @@ fn main() {
     entity.set_renderable(Box::new(components::renderable::Renderable::new()));
     let mut entities = [entity];
 
-    let mut i = 0;
+    let mut frame_count = 0;
     let frame_period = Duration::from_millis(16);
     let event_loop_proxy = events_loop.create_proxy();
     events_loop.run_forever(|event| {
@@ -44,10 +44,17 @@ fn main() {
 
         let now = SystemTime::now();
 
+        match entities[0].get_renderable() {
+            Some(r) => r.set_position(-0.001 * frame_count as f32, 0.0),
+            None => (),
+        }
+
+        println!("Rendering frame {:?}", frame_count);
         rendering_system.apply(&mut entities);
 
         gl_window.swap_buffers().unwrap();
 
+        frame_count += 1;
         let duration = match now.elapsed() {
             Ok(duration) => duration,
             Err(err) => panic!("Could not compute frame duration {:?}", err),
