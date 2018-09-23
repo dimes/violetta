@@ -5,6 +5,7 @@ use entities::Entity;
 use gl::types::{GLboolean, GLfloat, GLint, GLsizei, GLsizeiptr, GLvoid};
 use std::cmp;
 use std::collections::BTreeSet;
+use std::ffi::CString;
 use std::mem;
 use std::ptr;
 use util;
@@ -13,20 +14,22 @@ static VS_SRC: &'static str = "
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
-layout (location = 2) in vec4 aTransformX;
-layout (location = 3) in vec4 aTransformY;
-layout (location = 4) in vec4 aTransformZ;
-layout (location = 5) in vec4 aTransformW;
+layout (location = 2) in vec4 aModelX;
+layout (location = 3) in vec4 aModelY;
+layout (location = 4) in vec4 aModelZ;
+layout (location = 5) in vec4 aModelW;
+
+uniform mat4 uViewProjection;
 
 out vec4 vertexColor;
 
 void main() {
     vec4 pos = vec4(aPos, 1.0);
-    gl_Position = vec4(
-        dot(pos, aTransformX), 
-        dot(pos, aTransformY), 
-        dot(pos, aTransformZ), 
-        dot(pos, aTransformW)
+    gl_Position = uViewProjection * vec4(
+        dot(pos, aModelX), 
+        dot(pos, aModelY), 
+        dot(pos, aModelZ), 
+        dot(pos, aModelW)
     );
     vertexColor = vec4(aColor, 1.0);
 }";
@@ -51,13 +54,19 @@ pub struct System {
 
     program: u32,
 
+    // Vertex arrays
     vao: u32,
 
+    // Vertex buffers
     vbo: u32,
     vbo_size: usize,
 
+    // Element buffers
     ebo: u32,
     ebo_size: usize,
+
+    // Uniforms
+    u_view_projection: i32,
 }
 
 impl System {
@@ -75,6 +84,8 @@ impl System {
 
             ebo: 0,
             ebo_size: 1024 * VERTS_PER_OBJECT * 3 as usize,
+
+            u_view_projection: 0,
         };
     }
 }
@@ -87,6 +98,12 @@ impl ::systems::System for System {
             let program = util::shader::link_program(vs, fs);
             gl::DeleteShader(vs);
             gl::DeleteShader(fs);
+
+            self.u_view_projection = gl::GetUniformLocation(
+                program,
+                CString::new("uViewProjection").unwrap().as_ptr() as *const i8,
+            );
+
             program
         };
 
@@ -123,6 +140,14 @@ impl ::systems::System for System {
             gl::BindBuffer(gl::ARRAY_BUFFER, self.vbo);
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
             gl::UseProgram(self.program);
+
+            let view_projection = util::matrix::identity();
+            gl::UniformMatrix4fv(
+                self.u_view_projection,
+                1,
+                gl::FALSE as GLboolean,
+                mem::transmute(&view_projection[0]),
+            )
         }
 
         let mut max_index = 0;
