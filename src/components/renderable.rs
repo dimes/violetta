@@ -18,7 +18,7 @@ impl Renderable {
             dirty: true,
             vertex_range: None,
             index_range: None,
-            local_matrix: matrix::identity(),
+            local_matrix: Box::new(matrix::identity()),
             x: 0.0,
             y: 0.0,
         };
