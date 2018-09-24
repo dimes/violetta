@@ -1,11 +1,6 @@
 extern crate gl;
 extern crate glutin;
 
-use std::thread::sleep;
-use std::time::Duration;
-use std::time::SystemTime;
-use systems::System;
-
 mod components;
 mod context;
 mod entities;

@@ -48,11 +48,11 @@ pub fn multiply(left: &mut Mat4, right: &Mat4) {
     left.copy_from_slice(&temp)
 }
 
-pub fn scale(target: &mut Mat4, scaleX: GLfloat, scaleY: GLfloat, scaleZ: GLfloat) {
+pub fn scale(target: &mut Mat4, scale_x: GLfloat, scale_y: GLfloat, scale_z: GLfloat) {
     let scale: Mat4 = [
-        scaleX, 0.0, 0.0, 0.0, //
-        0.0, scaleY, 0.0, 0.0, //
-        0.0, 0.0, scaleZ, 0.0, //
+        scale_x, 0.0, 0.0, 0.0, //
+        0.0, scale_y, 0.0, 0.0, //
+        0.0, 0.0, scale_z, 0.0, //
         0.0, 0.0, 0.0, 1.0, //
     ];
     return multiply(target, &scale);

@@ -51,8 +51,10 @@ impl GameRunner {
 
         self.game.initialize(&mut context);
 
-        let entity = &mut entities::Entity::new();
-        entity.set_renderable(Box::new(components::renderable::Renderable::new()));
+        let entity = &mut entities::Entity::new(32);
+        let mut renderable = components::renderable::Renderable::new();
+        renderable.set_size(1.0, 1.0);
+        entity.set_renderable(Box::new(renderable));
         let mut entities = [entity];
 
         let mut frame_count = 0;

@@ -4,16 +4,16 @@ pub struct Context {
     pub camera: Camera,
 }
 
-pub struct Camera {
-    pub view_matrix: Box<matrix::Mat4>,
-}
-
 impl Context {
     pub fn new() -> Context {
         return Context {
             camera: Camera::new(),
         };
     }
+}
+
+pub struct Camera {
+    pub view_matrix: Box<matrix::Mat4>,
 }
 
 impl Camera {
