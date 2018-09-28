@@ -2,6 +2,7 @@ extern crate gl;
 extern crate glutin;
 
 use components;
+use components::renderable::Renderable;
 use context::Context;
 use entities;
 use std::thread::sleep;
@@ -52,9 +53,9 @@ impl GameRunner {
         self.game.initialize(&mut context);
 
         let entity = &mut entities::Entity::new(32);
-        let mut renderable = components::renderable::Renderable::new();
+        let mut renderable = Renderable::new();
         renderable.set_size(1.0, 1.0);
-        entity.set_renderable(Box::new(renderable));
+        entity.set_component::<Renderable>(renderable);
         let mut entities = [entity];
 
         let mut frame_count = 0;

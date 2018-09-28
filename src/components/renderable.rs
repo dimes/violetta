@@ -1,3 +1,4 @@
+use components::Component;
 use std::cmp::Ordering;
 use util::matrix;
 
@@ -15,8 +16,18 @@ pub struct Renderable {
     height: f32,
 }
 
+impl Component for Renderable {
+    fn name(&self) -> &'static str {
+        return Renderable::name();
+    }
+}
+
 impl Renderable {
-    pub fn new() -> Renderable {
+    pub fn name() -> &'static str {
+        return "renderable";
+    }
+
+    pub fn new() -> Box<Renderable> {
         let mut renderable = Renderable {
             dirty: true,
             vertex_range: None,
@@ -29,7 +40,7 @@ impl Renderable {
             height: 0.0,
         };
         renderable.update_matrix();
-        return renderable;
+        return Box::new(renderable);
     }
 
     pub fn set_position(&mut self, x: f32, y: f32) {

@@ -1,27 +1,31 @@
-use components::renderable::Renderable;
+use components::Component;
+use std::any::Any;
+use std::collections::HashMap;
 
 #[derive(Debug)]
 pub struct Entity {
     id: u64,
-    renderable: Option<Box<Renderable>>,
+    components: HashMap<&'static str, Box<Any>>,
 }
 
 impl Entity {
     pub fn new(id: u64) -> Entity {
         return Entity {
             id: id,
-            renderable: None,
+            components: HashMap::new(),
         };
     }
 
-    pub fn get_renderable(&mut self) -> Option<&mut Renderable> {
-        match self.renderable.as_mut() {
-            Some(r) => return Some(r),
+    pub fn get_component<T: Component + Any>(&mut self, name: &'static str) -> Option<&mut T> {
+        let component = self.components.get_mut(name);
+        match component {
+            Some(component) => component.as_mut().downcast_mut(),
             None => None,
         }
     }
 
-    pub fn set_renderable(&mut self, renderable: Box<Renderable>) {
-        self.renderable = Some(renderable);
+    pub fn set_component<T: Component + Any>(&mut self, component: Box<T>) {
+        self.components
+            .insert(component.name(), component as Box<Any>);
     }
 }

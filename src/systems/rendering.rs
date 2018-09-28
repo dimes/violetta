@@ -153,7 +153,7 @@ impl ::systems::System for System {
 
         let mut max_index = 0;
         for entity in entities {
-            let renderable = match entity.get_renderable() {
+            let renderable = match entity.get_component::<Renderable>(Renderable::name()) {
                 Some(renderable) => renderable,
                 None => continue,
             };
