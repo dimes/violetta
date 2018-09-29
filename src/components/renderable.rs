@@ -46,13 +46,13 @@ impl Renderable {
     pub fn set_position(&mut self, x: f32, y: f32) {
         self.x = x;
         self.y = y;
-        self.dirty = true;
+        self.update_matrix();
     }
 
     pub fn set_size(&mut self, width: f32, height: f32) {
         self.width = width;
         self.height = height;
-        self.dirty = true;
+        self.update_matrix();
     }
 
     pub fn update_matrix(&mut self) {

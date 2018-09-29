@@ -219,7 +219,6 @@ impl System {
             return;
         }
 
-        renderable.update_matrix();
         if renderable.vertex_range.is_none() {
             self.assign_vertex_range(renderable);
         }
