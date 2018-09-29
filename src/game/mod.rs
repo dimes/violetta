@@ -1,7 +1,6 @@
 extern crate gl;
 extern crate glutin;
 
-use components;
 use components::renderable::Renderable;
 use context::Context;
 use entities;
@@ -52,11 +51,11 @@ impl GameRunner {
 
         self.game.initialize(&mut context);
 
-        let entity = &mut entities::Entity::new(32);
+        let mut entity = entities::Entity::new(32);
         let mut renderable = Renderable::new();
         renderable.set_size(1.0, 1.0);
         entity.set_component::<Renderable>(renderable);
-        let mut entities = [entity];
+        context.entities.add(Box::new(entity));
 
         let mut frame_count = 0;
         let frame_period = Duration::from_millis(16);
@@ -74,7 +73,7 @@ impl GameRunner {
             self.game.game_loop(&mut context);
 
             for system in &mut self.systems {
-                system.apply(&context, &mut entities)
+                system.apply(&mut context)
             }
 
             gl_window.swap_buffers().unwrap();

@@ -2,7 +2,6 @@ extern crate gl;
 
 use components::renderable::{Renderable, VertexRange};
 use context::Context;
-use entities::Entity;
 use gl::types::{GLboolean, GLfloat, GLint, GLsizei, GLsizeiptr, GLvoid};
 use std::cmp;
 use std::collections::BTreeSet;
@@ -132,7 +131,7 @@ impl ::systems::System for System {
         }
     }
 
-    fn apply(&mut self, context: &Context, entities: &mut [&mut Entity]) {
+    fn apply(&mut self, context: &mut Context) {
         unsafe {
             gl::ClearColor(0.0, 0.0, 0.0, 1.0);
             gl::Clear(gl::COLOR_BUFFER_BIT);
@@ -152,7 +151,12 @@ impl ::systems::System for System {
         }
 
         let mut max_index = 0;
-        for entity in entities {
+        for current_index in 0..context.entities.raw_len() {
+            let entity = match context.entities.get_raw(current_index) {
+                Some(entity) => entity,
+                None => continue,
+            };
+
             let renderable = match entity.get_component::<Renderable>(Renderable::name()) {
                 Some(renderable) => renderable,
                 None => continue,
