@@ -1,9 +1,7 @@
 extern crate gl;
 extern crate glutin;
 
-use components::renderable::Renderable;
 use context::Context;
-use entities;
 use std::thread::sleep;
 use std::time::Duration;
 use std::time::SystemTime;
@@ -36,26 +34,21 @@ impl GameRunner {
 
         let mut events_loop = glutin::EventsLoop::new();
         let window = glutin::WindowBuilder::new();
-        let context = glutin::ContextBuilder::new();
-        let gl_window = glutin::GlWindow::new(window, context, &events_loop).unwrap();
+        let window_context = glutin::ContextBuilder::new().with_vsync(true);
+        let gl_window = glutin::GlWindow::new(window, window_context, &events_loop).unwrap();
 
         unsafe { gl_window.make_current().unwrap() };
 
         gl::load_with(|symbol| gl_window.get_proc_address(symbol) as *const _);
 
         let mut context = Context::new();
+        self.update_screen_dimensions(&mut context, &gl_window);
 
         for system in &mut self.systems {
             system.initialize();
         }
 
         self.game.initialize(&mut context);
-
-        let mut entity = entities::Entity::new(32);
-        let mut renderable = Renderable::new();
-        renderable.set_size(1.0, 1.0);
-        entity.set_component::<Renderable>(renderable);
-        context.entities.add(Box::new(entity));
 
         let mut frame_count = 0;
         let frame_period = Duration::from_millis(16);
@@ -70,6 +63,7 @@ impl GameRunner {
             }
 
             let now = SystemTime::now();
+            self.update_screen_dimensions(&mut context, &gl_window);
             self.game.game_loop(&mut context);
 
             for system in &mut self.systems {
@@ -81,8 +75,13 @@ impl GameRunner {
             frame_count += 1;
             let duration = match now.elapsed() {
                 Ok(duration) => duration,
-                Err(err) => panic!("Could not compute frame duration {:?}", err),
+                Err(err) => {
+                    println!("Could not compute frame duration {:?}", err);
+                    Duration::from_millis(16)
+                }
             };
+
+            println!("Frame duration was {:?}", duration);
 
             if duration < frame_period {
                 sleep(frame_period - duration);
@@ -95,5 +94,16 @@ impl GameRunner {
 
             ControlFlow::Continue
         })
+    }
+
+    fn update_screen_dimensions(&mut self, context: &mut Context, window: &glutin::GlWindow) {
+        let dpi = window.get_current_monitor().get_hidpi_factor();
+        if let Some(screen_size) = window
+            .get_inner_size()
+            .map({ |value| value.to_physical(dpi) })
+        {
+            let dimensions: (u32, u32) = screen_size.into();
+            context.screen.set_dimensions(dimensions.0, dimensions.1);
+        }
     }
 }

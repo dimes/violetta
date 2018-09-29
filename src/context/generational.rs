@@ -51,14 +51,14 @@ impl<T> GenerationalArray<T> {
         };
     }
 
-    pub fn get(&self, key: &Key) -> Option<&T> {
-        let container = &self.entities[key.index];
+    pub fn get(&mut self, key: &Key) -> Option<&mut T> {
+        let container = &mut self.entities[key.index];
         if container.generation > key.generation {
             return None;
         }
 
         return match container.value {
-            Some(ref value) => Some(value.as_ref()),
+            Some(ref mut value) => Some(value.as_mut()),
             None => None,
         };
     }

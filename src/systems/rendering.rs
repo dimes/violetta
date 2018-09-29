@@ -2,7 +2,7 @@ extern crate gl;
 
 use components::renderable::{Renderable, VertexRange};
 use context::Context;
-use gl::types::{GLboolean, GLfloat, GLint, GLsizei, GLsizeiptr, GLvoid};
+use gl::types::{GLboolean, GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
 use std::cmp;
 use std::collections::BTreeSet;
 use std::ffi::CString;
@@ -124,7 +124,7 @@ impl ::systems::System for System {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
             gl::BufferData(
                 gl::ELEMENT_ARRAY_BUFFER,
-                (self.ebo_size * mem::size_of::<GLint>()) as GLsizeiptr,
+                (self.ebo_size * mem::size_of::<GLuint>()) as GLsizeiptr,
                 ptr::null(),
                 gl::STATIC_DRAW,
             );
@@ -219,6 +219,7 @@ impl System {
             return;
         }
 
+        renderable.update_matrix();
         if renderable.vertex_range.is_none() {
             self.assign_vertex_range(renderable);
         }
@@ -234,7 +235,7 @@ impl System {
                     ];
 
                     for (i, vertex) in quad.iter().enumerate() {
-                        let offset = range.start + (i * 22);
+                        let offset = (range.start + i) * VERTEX_SIZE as usize;
                         gl::BufferSubData(
                             gl::ARRAY_BUFFER,
                             (offset * mem::size_of::<GLfloat>()) as GLsizeiptr,
@@ -245,7 +246,7 @@ impl System {
                         let local_matrix = &renderable.local_matrix;
                         gl::BufferSubData(
                             gl::ARRAY_BUFFER,
-                            ((offset + 6) * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                            ((offset + vertex.len()) * mem::size_of::<GLfloat>()) as GLsizeiptr,
                             (local_matrix.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
                             mem::transmute(&local_matrix[0]),
                         );
@@ -257,13 +258,19 @@ impl System {
             match renderable.index_range {
                 Some(ref range) => {
                     // Put a quad up on that GPU
-                    let start = range.start as i32;
-                    let indices: [GLint; 6] =
-                        [start, start + 1, start + 2, start + 1, start + 2, start + 3];
+                    let triange_start = (range.start as u32 / 6) * 4;
+                    let indices: [GLuint; 6] = [
+                        triange_start,
+                        triange_start + 1,
+                        triange_start + 2,
+                        triange_start + 1,
+                        triange_start + 2,
+                        triange_start + 3,
+                    ];
                     gl::BufferSubData(
                         gl::ELEMENT_ARRAY_BUFFER,
-                        (range.start * mem::size_of::<GLint>()) as GLsizeiptr,
-                        (indices.len() * mem::size_of::<GLint>()) as GLsizeiptr,
+                        (range.start * mem::size_of::<GLuint>()) as GLsizeiptr,
+                        (indices.len() * mem::size_of::<GLuint>()) as GLsizeiptr,
                         mem::transmute(&indices[0]),
                     );
                 }

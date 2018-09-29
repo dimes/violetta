@@ -10,10 +10,10 @@ pub struct Renderable {
     pub local_matrix: Box<matrix::Mat4>,
 
     // State
-    x: f32,
-    y: f32,
-    width: f32,
-    height: f32,
+    pub x: f32,
+    pub y: f32,
+    pub width: f32,
+    pub height: f32,
 }
 
 impl Component for Renderable {
@@ -46,16 +46,16 @@ impl Renderable {
     pub fn set_position(&mut self, x: f32, y: f32) {
         self.x = x;
         self.y = y;
-        self.update_matrix();
+        self.dirty = true;
     }
 
     pub fn set_size(&mut self, width: f32, height: f32) {
         self.width = width;
         self.height = height;
-        self.update_matrix();
+        self.dirty = true;
     }
 
-    fn update_matrix(&mut self) {
+    pub fn update_matrix(&mut self) {
         self.dirty = true;
         matrix::to_identity(self.local_matrix.as_mut());
         matrix::translate(&mut self.local_matrix, self.x, self.y, 0.0);
