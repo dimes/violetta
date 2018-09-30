@@ -35,7 +35,7 @@ impl game::Game for Game {
             context.screen.height as f32,
         );
 
-        for _ in 0..500 {
+        for _ in 0..1000 {
             self.objs.push(Box::new(GameBox::new(context)));
         }
     }

@@ -14,10 +14,7 @@ static VS_SRC: &'static str = "
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
-layout (location = 2) in vec4 aModelX;
-layout (location = 3) in vec4 aModelY;
-layout (location = 4) in vec4 aModelZ;
-layout (location = 5) in vec4 aModelW;
+layout (location = 2) in vec4 aRect;
 
 uniform mat4 uViewProjection;
 
@@ -25,12 +22,16 @@ out vec4 vertexColor;
 
 void main() {
     vec4 pos = vec4(aPos, 1.0);
-    gl_Position = uViewProjection * vec4(
-        dot(pos, aModelX), 
-        dot(pos, aModelY), 
-        dot(pos, aModelZ), 
-        dot(pos, aModelW)
-    );
+    
+    mat4 scale = mat4(1.0);
+    scale[0][0] = aRect[2];
+    scale[1][1] = aRect[3];
+
+    mat4 translate = mat4(1.0);
+    translate[3][0] = aRect[0];
+    translate[3][1] = aRect[1];
+
+    gl_Position = uViewProjection * translate * scale * pos;
     vertexColor = vec4(aColor, 1.0);
 }";
 
@@ -44,9 +45,10 @@ void main() {
     FragColor = vertexColor;
 }";
 
-const VERTEX_SIZE: i32 = 22;
+const VERTEX_SIZE: i32 = 10;
 const VERTS_PER_OBJECT: usize = 4;
 const INDICES_PER_OBJECT: usize = 6;
+const NUM_OBJECTS: usize = 5120;
 
 pub struct System {
     vertex_ranges: BTreeSet<Box<VertexRange>>,
@@ -80,10 +82,10 @@ impl System {
             vao: 0,
 
             vbo: 0,
-            vbo_size: 1024 * VERTS_PER_OBJECT * VERTEX_SIZE as usize,
+            vbo_size: NUM_OBJECTS * VERTS_PER_OBJECT * VERTEX_SIZE as usize,
 
             ebo: 0,
-            ebo_size: 1024 * VERTS_PER_OBJECT * 3 as usize,
+            ebo_size: NUM_OBJECTS * VERTS_PER_OBJECT * 3 as usize,
 
             u_view_projection: 0,
         };
@@ -191,17 +193,15 @@ impl ::systems::System for System {
             );
             gl::EnableVertexAttribArray(1);
 
-            for i in 0..4 {
-                gl::VertexAttribPointer(
-                    2 + i,
-                    4,
-                    gl::FLOAT,
-                    gl::FALSE as GLboolean,
-                    VERTEX_SIZE * mem::size_of::<GLfloat>() as GLsizei,
-                    ((6 + 4 * i as usize) * mem::size_of::<GLfloat>()) as *const GLvoid,
-                );
-                gl::EnableVertexAttribArray(2 + i);
-            }
+            gl::VertexAttribPointer(
+                2,
+                4,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                VERTEX_SIZE * mem::size_of::<GLfloat>() as GLsizei,
+                (6 * mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            gl::EnableVertexAttribArray(2);
 
             gl::DrawElements(
                 gl::TRIANGLES,
@@ -242,12 +242,18 @@ impl System {
                             mem::transmute(&vertex[0]),
                         );
 
-                        let local_matrix = &renderable.local_matrix;
+                        let rect: [GLfloat; 4] = [
+                            renderable.x,
+                            renderable.y,
+                            renderable.width,
+                            renderable.height,
+                        ];
+
                         gl::BufferSubData(
                             gl::ARRAY_BUFFER,
                             ((offset + vertex.len()) * mem::size_of::<GLfloat>()) as GLsizeiptr,
-                            (local_matrix.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-                            mem::transmute(&local_matrix[0]),
+                            (rect.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
+                            mem::transmute(&rect[0]),
                         );
                     }
                 }
