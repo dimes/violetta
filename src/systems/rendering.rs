@@ -119,7 +119,7 @@ impl ::systems::System for System {
                 gl::ARRAY_BUFFER,
                 (self.vbo_size * mem::size_of::<GLfloat>()) as GLsizeiptr,
                 ptr::null(),
-                gl::STATIC_DRAW,
+                gl::DYNAMIC_DRAW,
             );
 
             gl::GenBuffers(1, &mut self.ebo);
@@ -128,7 +128,7 @@ impl ::systems::System for System {
                 gl::ELEMENT_ARRAY_BUFFER,
                 (self.ebo_size * mem::size_of::<GLuint>()) as GLsizeiptr,
                 ptr::null(),
-                gl::STATIC_DRAW,
+                gl::DYNAMIC_DRAW,
             );
         }
     }
@@ -226,11 +226,55 @@ impl System {
         unsafe {
             match renderable.vertex_range {
                 Some(ref range) => {
-                    let quad: [[GLfloat; 6]; 4] = [
-                        [-0.5, 0.5, 0.0, 1.0, 0.0, 0.0],  //
-                        [0.5, 0.5, 0.0, 0.0, 1.0, 0.0],   //
-                        [-0.5, -0.5, 0.0, 0.0, 0.0, 1.0], //
-                        [0.5, -0.5, 0.0, 1.0, 0.0, 0.0],  //
+                    let quad: [[GLfloat; VERTEX_SIZE as usize]; 4] = [
+                        [
+                            -0.5,
+                            0.5,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            renderable.x,
+                            renderable.y,
+                            renderable.width,
+                            renderable.height,
+                        ], //
+                        [
+                            0.5,
+                            0.5,
+                            0.0,
+                            0.0,
+                            1.0,
+                            0.0,
+                            renderable.x,
+                            renderable.y,
+                            renderable.width,
+                            renderable.height,
+                        ], //
+                        [
+                            -0.5,
+                            -0.5,
+                            0.0,
+                            0.0,
+                            0.0,
+                            1.0,
+                            renderable.x,
+                            renderable.y,
+                            renderable.width,
+                            renderable.height,
+                        ], //
+                        [
+                            0.5,
+                            -0.5,
+                            0.0,
+                            1.0,
+                            0.0,
+                            0.0,
+                            renderable.x,
+                            renderable.y,
+                            renderable.width,
+                            renderable.height,
+                        ], //
                     ];
 
                     for (i, vertex) in quad.iter().enumerate() {
@@ -240,20 +284,6 @@ impl System {
                             (offset * mem::size_of::<GLfloat>()) as GLsizeiptr,
                             (vertex.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
                             mem::transmute(&vertex[0]),
-                        );
-
-                        let rect: [GLfloat; 4] = [
-                            renderable.x,
-                            renderable.y,
-                            renderable.width,
-                            renderable.height,
-                        ];
-
-                        gl::BufferSubData(
-                            gl::ARRAY_BUFFER,
-                            ((offset + vertex.len()) * mem::size_of::<GLfloat>()) as GLsizeiptr,
-                            (rect.len() * mem::size_of::<GLfloat>()) as GLsizeiptr,
-                            mem::transmute(&rect[0]),
                         );
                     }
                 }
