@@ -14,7 +14,8 @@ static VS_SRC: &'static str = "
 #version 330 core
 layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
-layout (location = 2) in vec4 aRect;
+layout (location = 2) in vec3 aTranslate;
+layout (location = 3) in vec3 aScale;
 
 uniform mat4 uView;
 uniform mat4 uProjection;
@@ -25,12 +26,14 @@ void main() {
     vec4 pos = vec4(aPos, 1.0);
     
     mat4 scale = mat4(1.0);
-    scale[0][0] = aRect[2];
-    scale[1][1] = aRect[3];
+    scale[0][0] = aScale.x;
+    scale[1][1] = aScale.y;
+    scale[2][2] = aScale.z;
 
     mat4 translate = mat4(1.0);
-    translate[3][0] = aRect[0];
-    translate[3][1] = aRect[1];
+    translate[3][0] = aTranslate.x;
+    translate[3][1] = aTranslate.y;
+    translate[3][2] = aTranslate.z;
 
     mat4 model = translate * scale;
 
@@ -48,7 +51,7 @@ void main() {
     FragColor = vertexColor;
 }";
 
-const VERTEX_SIZE: i32 = 10;
+const VERTEX_SIZE: i32 = 12;
 const VERTS_PER_OBJECT: usize = 4;
 const INDICES_PER_OBJECT: usize = 6;
 const NUM_OBJECTS: usize = 5120;
@@ -213,13 +216,23 @@ impl ::systems::System for System {
 
             gl::VertexAttribPointer(
                 2,
-                4,
+                3,
                 gl::FLOAT,
                 gl::FALSE as GLboolean,
                 VERTEX_SIZE * mem::size_of::<GLfloat>() as GLsizei,
                 (6 * mem::size_of::<GLfloat>()) as *const GLvoid,
             );
             gl::EnableVertexAttribArray(2);
+
+            gl::VertexAttribPointer(
+                3,
+                3,
+                gl::FLOAT,
+                gl::FALSE as GLboolean,
+                VERTEX_SIZE * mem::size_of::<GLfloat>() as GLsizei,
+                (9 * mem::size_of::<GLfloat>()) as *const GLvoid,
+            );
+            gl::EnableVertexAttribArray(3);
 
             gl::DrawElements(
                 gl::TRIANGLES,
@@ -254,8 +267,10 @@ impl System {
                             0.0,
                             renderable.x,
                             renderable.y,
+                            renderable.z,
                             renderable.width,
                             renderable.height,
+                            0.0,
                         ], //
                         [
                             0.5,
@@ -266,8 +281,10 @@ impl System {
                             0.0,
                             renderable.x,
                             renderable.y,
+                            renderable.z,
                             renderable.width,
                             renderable.height,
+                            0.0,
                         ], //
                         [
                             -0.5,
@@ -278,8 +295,10 @@ impl System {
                             1.0,
                             renderable.x,
                             renderable.y,
+                            renderable.z,
                             renderable.width,
                             renderable.height,
+                            0.0,
                         ], //
                         [
                             0.5,
@@ -290,8 +309,10 @@ impl System {
                             0.0,
                             renderable.x,
                             renderable.y,
+                            renderable.z,
                             renderable.width,
                             renderable.height,
+                            0.0,
                         ], //
                     ];
 
