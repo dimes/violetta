@@ -35,7 +35,7 @@ impl game::Game for Game {
             context.screen.height as f32,
         );
 
-        for _ in 0..2000 {
+        for _ in 0..5000 {
             self.objs.push(Box::new(GameBox::new(context)));
         }
     }
@@ -66,6 +66,7 @@ impl GameBox {
     fn new(context: &mut Context) -> GameBox {
         let x = rand::thread_rng().gen::<f32>() * context.screen.width as f32;
         let y = rand::thread_rng().gen::<f32>() * context.screen.height as f32;
+        let z = 2.0 * rand::thread_rng().gen::<f32>() - 1.0;
         let dx = 2.0 * rand::thread_rng().gen::<f32>() - 1.0;
         let dy = 2.0 * rand::thread_rng().gen::<f32>() - 1.0;
         let size = 5.0 + 100.0 * rand::thread_rng().gen::<f32>();
@@ -73,6 +74,7 @@ impl GameBox {
         let mut game_obj = GameObj::new(context);
         game_obj.set_position(context, x, y);
         game_obj.set_size(context, size, size);
+        game_obj.set_z_index(context, z);
         let game_box = GameBox {
             obj: game_obj,
             direction: (speed * dx, speed * dy),
@@ -151,7 +153,20 @@ impl GameObj {
             .get(&self.key)
             .and_then({ |entity| entity.get_component::<Renderable>(Renderable::name()) })
         {
-            renderable.set_position(x, y);
+            let z = renderable.z;
+            renderable.set_position(x, y, z);
+        }
+    }
+
+    fn set_z_index(&mut self, context: &mut Context, z: f32) {
+        if let Some(renderable) = context
+            .entities
+            .get(&self.key)
+            .and_then({ |entity| entity.get_component::<Renderable>(Renderable::name()) })
+        {
+            let x = renderable.x;
+            let y = renderable.y;
+            renderable.set_position(x, y, z);
         }
     }
 }

@@ -41,9 +41,10 @@ impl Renderable {
         return Box::new(renderable);
     }
 
-    pub fn set_position(&mut self, x: f32, y: f32) {
+    pub fn set_position(&mut self, x: f32, y: f32, z: f32) {
         self.x = x;
         self.y = y;
+        self.z = z;
         self.dirty = true;
     }
 
