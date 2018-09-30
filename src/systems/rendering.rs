@@ -16,7 +16,8 @@ layout (location = 0) in vec3 aPos;
 layout (location = 1) in vec3 aColor;
 layout (location = 2) in vec4 aRect;
 
-uniform mat4 uViewProjection;
+uniform mat4 uView;
+uniform mat4 uProjection;
 
 out vec4 vertexColor;
 
@@ -31,7 +32,9 @@ void main() {
     translate[3][0] = aRect[0];
     translate[3][1] = aRect[1];
 
-    gl_Position = uViewProjection * translate * scale * pos;
+    mat4 model = translate * scale;
+
+    gl_Position = uProjection * uView * model * pos;
     vertexColor = vec4(aColor, 1.0);
 }";
 
@@ -68,7 +71,8 @@ pub struct System {
     ebo_size: usize,
 
     // Uniforms
-    u_view_projection: i32,
+    u_view: i32,
+    u_projection: i32,
 }
 
 impl System {
@@ -87,7 +91,8 @@ impl System {
             ebo: 0,
             ebo_size: NUM_OBJECTS * VERTS_PER_OBJECT * 3 as usize,
 
-            u_view_projection: 0,
+            u_view: 0,
+            u_projection: 0,
         };
     }
 }
@@ -101,9 +106,14 @@ impl ::systems::System for System {
             gl::DeleteShader(vs);
             gl::DeleteShader(fs);
 
-            self.u_view_projection = gl::GetUniformLocation(
+            self.u_view = gl::GetUniformLocation(
                 program,
-                CString::new("uViewProjection").unwrap().as_ptr() as *const i8,
+                CString::new("uView").unwrap().as_ptr() as *const i8,
+            );
+
+            self.u_projection = gl::GetUniformLocation(
+                program,
+                CString::new("uProjection").unwrap().as_ptr() as *const i8,
             );
 
             program
@@ -143,12 +153,20 @@ impl ::systems::System for System {
             gl::BindBuffer(gl::ELEMENT_ARRAY_BUFFER, self.ebo);
             gl::UseProgram(self.program);
 
-            let view_projection = &context.camera.view_matrix;
+            let view = &context.camera.view_matrix;
             gl::UniformMatrix4fv(
-                self.u_view_projection,
+                self.u_view,
                 1,
                 gl::TRUE as GLboolean,
-                mem::transmute(&view_projection[0]),
+                mem::transmute(&view[0]),
+            );
+
+            let projection = &context.camera.projection_matrix;
+            gl::UniformMatrix4fv(
+                self.u_projection,
+                1,
+                gl::TRUE as GLboolean,
+                mem::transmute(&projection[0]),
             );
         }
 

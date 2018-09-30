@@ -6,16 +6,19 @@ pub struct Camera {
     pub right: f32,
     pub bottom: f32,
     pub view_matrix: Box<matrix::Mat4>,
+    pub projection_matrix: Box<matrix::Mat4>,
 }
 
 impl Camera {
     pub fn new() -> Camera {
+        let projection = matrix::identity();
         return Camera {
             left: -1.0,
             top: 1.0,
             right: 1.0,
             bottom: -1.0,
             view_matrix: Box::new(matrix::identity()),
+            projection_matrix: Box::new(projection),
         };
     }
 

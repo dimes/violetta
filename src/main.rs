@@ -35,7 +35,7 @@ impl game::Game for Game {
             context.screen.height as f32,
         );
 
-        for _ in 0..1500 {
+        for _ in 0..2000 {
             self.objs.push(Box::new(GameBox::new(context)));
         }
     }
@@ -68,7 +68,7 @@ impl GameBox {
         let y = rand::thread_rng().gen::<f32>() * context.screen.height as f32;
         let dx = 2.0 * rand::thread_rng().gen::<f32>() - 1.0;
         let dy = 2.0 * rand::thread_rng().gen::<f32>() - 1.0;
-        let size = 10.0 + 200.0 * rand::thread_rng().gen::<f32>();
+        let size = 5.0 + 100.0 * rand::thread_rng().gen::<f32>();
         let speed = -25.0 + 50.0 * rand::thread_rng().gen::<f32>();
         let mut game_obj = GameObj::new(context);
         game_obj.set_position(context, x, y);
