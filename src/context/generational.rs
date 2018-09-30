@@ -1,5 +1,3 @@
-use entities::Entity;
-
 pub struct GenerationalArray<T> {
     entities: Vec<Container<T>>,
     free_list: Vec<usize>,

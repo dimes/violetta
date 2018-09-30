@@ -26,7 +26,7 @@ impl Renderable {
     }
 
     pub fn new() -> Box<Renderable> {
-        let mut renderable = Renderable {
+        let renderable = Renderable {
             dirty: true,
             vertex_range: None,
             index_range: None,
