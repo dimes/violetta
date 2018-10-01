@@ -1,5 +1,8 @@
 extern crate gl;
 
+mod texture;
+
+use self::texture::TextureManager;
 use components::renderable::{Renderable, VertexRange};
 use context::Context;
 use gl::types::{GLboolean, GLfloat, GLsizei, GLsizeiptr, GLuint, GLvoid};
@@ -76,6 +79,9 @@ pub struct System {
     // Uniforms
     u_view: i32,
     u_projection: i32,
+
+    // Textures
+    texture_manager: TextureManager,
 }
 
 impl System {
@@ -96,6 +102,8 @@ impl System {
 
             u_view: 0,
             u_projection: 0,
+
+            texture_manager: TextureManager::new(),
         };
     }
 }
@@ -172,6 +180,8 @@ impl ::systems::System for System {
                 mem::transmute(&projection[0]),
             );
         }
+
+        self.update_textures();
 
         let mut max_index = 0;
         for current_index in 0..context.entities.raw_len() {
@@ -380,5 +390,55 @@ impl System {
             start: first_free_index,
             length: size,
         };
+    }
+
+    fn update_textures(&mut self) {
+        for i in 0..self.texture_manager.num_groups() {
+            let group = self.texture_manager.get_group(i);
+            if group.handle == 0 {
+                unsafe {
+                    gl::GenTextures(1, &mut group.handle);
+                    gl::BindTexture(gl::TEXTURE_2D_ARRAY, group.handle);
+                    gl::TexStorage3D(
+                        gl::TEXTURE_2D_ARRAY,
+                        1, /* mipmap level count */
+                        gl::RGBA8,
+                        group.width,
+                        group.height,
+                        group.max_size,
+                    );
+                }
+            }
+
+            if group.pending_textures.len() == 0 {
+                continue;
+            }
+
+            unsafe {
+                gl::BindTexture(gl::TEXTURE_2D_ARRAY, group.handle);
+            }
+
+            let pending_textures = &group.pending_textures;
+            for pending_texture in pending_textures {
+                let texture_index = pending_texture.index;
+                let texture = pending_texture.texture.as_ref();
+
+                unsafe {
+                    gl::TexSubImage3D(
+                        gl::TEXTURE_2D_ARRAY,
+                        0, // Mipmap level
+                        0, // x offset
+                        0, // y offset
+                        0,
+                        group.width,
+                        group.height,
+                        texture_index,
+                        gl::RGBA,
+                        gl::UNSIGNED_BYTE,
+                        mem::transmute(&texture[0]),
+                    );
+                }
+            }
+        }
     }
 }
